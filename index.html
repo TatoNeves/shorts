@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Quality Check</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        /* ── SCREENS ── */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100dvh;
+            width: 100%;
+            position: absolute;
+            inset: 0;
+        }
+        .screen.active { display: flex; }
+
+        /* ── LOGIN ── */
+        #screen-login { background: #000; gap: 40px; }
+
+        .login-brand { text-align: center; }
+        .login-icon  { font-size: 56px; display: block; margin-bottom: 12px; }
+        .login-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .login-sub {
+            font-size: 12px;
+            color: #444;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: min(320px, 90vw);
+        }
+
+        .login-input {
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 18px;
+            padding: 16px 20px;
+            outline: none;
+            text-align: center;
+            letter-spacing: 6px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .login-input::placeholder { letter-spacing: 2px; color: #333; font-size: 14px; }
+        .login-input:focus { border-color: #444; }
+
+        .login-btn {
+            background: #fff;
+            border: none;
+            border-radius: 14px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 16px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: opacity 0.15s;
+        }
+        .login-btn:active { opacity: 0.8; }
+
+        .login-error {
+            color: #ff4d4d;
+            font-size: 13px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        /* ── COUNTDOWN ── */
+        #screen-countdown { background: #000; gap: 20px; }
+
+        .countdown-num {
+            font-size: 130px;
+            font-weight: 900;
+            line-height: 1;
+            animation: pop 1s ease-in-out infinite;
+        }
+        @keyframes pop {
+            0%,100% { transform: scale(1);   opacity: 1; }
+            50%      { transform: scale(.85); opacity: .6; }
+        }
+        .countdown-label {
+            font-size: 13px;
+            color: #444;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* ── VIDEO ── */
+        #screen-video {
+            display: none;
+            position: relative;
+            background: #000;
+            height: 100dvh;
+            width: 100%;
+        }
+        #screen-video.active { display: block; }
+
+        /* header */
+        .vid-header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            z-index: 20;
+            padding: env(safe-area-inset-top, 12px) 16px 24px;
+            padding-top: max(env(safe-area-inset-top, 0px), 12px);
+            background: linear-gradient(to bottom, rgba(0,0,0,.75) 0%, transparent 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .vid-counter {
+            font-size: 12px;
+            color: rgba(255,255,255,.6);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .btn-stop {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 50%;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            flex-shrink: 0;
+            transition: background .15s;
+        }
+        .btn-stop:active { background: rgba(255,60,60,.5); }
+        .vid-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,.9);
+            text-align: right;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* player */
+        .vid-player {
+            position: absolute;
+            inset: 0;
+            background: #000;
+        }
+        .vid-video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            background: #000;
+        }
+        .vid-tap-zone {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+        }
+
+        /* loading */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid #1a1a1a;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* controls */
+        /* ── PROGRESS BAR ── */
+        .vid-progress {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            z-index: 25;
+            height: 3px;
+            background: rgba(255,255,255,.2);
+            cursor: pointer;
+        }
+        .vid-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            transition: width .1s linear;
+            pointer-events: none;
+        }
+
+        .vid-controls {
+            position: absolute;
+            bottom: 3px; left: 0; right: 0;
+            z-index: 20;
+            padding: 32px 12px max(env(safe-area-inset-bottom, 0px), 24px);
+            background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 100%);
+            display: flex;
+            align-items: center;
+        }
+
+        .main-btns {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* swipe hint */
+        .swipe-hint {
+            position: absolute;
+            top: 50%;
+            left: 0; right: 0;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            padding: 0 24px;
+            pointer-events: none;
+            z-index: 15;
+            opacity: 0;
+            animation: hint-fade 2.5s ease-out 1s forwards;
+        }
+        .swipe-hint span {
+            font-size: 13px;
+            color: rgba(255,255,255,.55);
+            letter-spacing: 1px;
+            background: rgba(0,0,0,.35);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        @keyframes hint-fade {
+            0%   { opacity: 0; }
+            20%  { opacity: 1; }
+            80%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .btn-rate {
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 0 14px;
+            height: 52px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+            min-width: 0;
+            transition: transform 0.1s, filter 0.15s;
+            letter-spacing: .5px;
+        }
+        .btn-rate:active { transform: scale(.93); filter: brightness(.85); }
+
+        .btn-dislike { background: #ff1744; color: #fff; }
+        .btn-like    { background: #00c853; color: #fff; }
+        .btn-skip    { background: #ffc107; color: #000; display: none; }
+
+        @media (hover: hover) and (pointer: fine) {
+            .btn-skip { display: flex; }
+        }
+
+        .btn-rate-icon { font-size: 18px; }
+
+        /* ── EMPTY ── */
+        #screen-empty {
+            background: #000;
+            gap: 18px;
+            text-align: center;
+            padding: 32px;
+        }
+        .empty-icon  { font-size: 72px; }
+        .empty-title { font-size: 24px; font-weight: 800; }
+        .empty-sub   { font-size: 14px; color: #444; line-height: 1.6; }
+        .btn-reload  {
+            margin-top: 8px;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 14px 32px;
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+        .btn-reload:active { opacity: .8; }
+
+        /* ── ERROR ── */
+        #screen-error {
+            background: #000;
+            gap: 18px;
+            text-align: center;
+            padding: 32px;
+        }
+        .error-icon  { font-size: 64px; }
+        .error-title { font-size: 22px; font-weight: 800; }
+        .error-msg   { font-size: 13px; color: #555; line-height: 1.6; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(.75);
+            font-size: 72px;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .15s, transform .15s;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="screen-login" class="screen active">
+    <div class="login-brand">
+        <span class="login-icon">🎬</span>
+        <div class="login-title">Quality Check</div>
+        <div class="login-sub">Shorts Review</div>
+    </div>
+    <div class="login-form">
+        <input
+            type="password"
+            id="password-input"
+            class="login-input"
+            placeholder="Password"
+            autocomplete="current-password"
+        >
+        <button class="login-btn" onclick="doLogin()">Sign In</button>
+        <div class="login-error" id="login-error"></div>
+    </div>
+</div>
+
+<!-- ══ COUNTDOWN ══ -->
+<div id="screen-countdown" class="screen">
+    <div class="countdown-num" id="countdown-num">5</div>
+    <div class="countdown-label">loading videos…</div>
+</div>
+
+<!-- ══ VIDEO ══ -->
+<div id="screen-video" class="screen">
+
+    <div class="vid-header">
+        <span class="vid-counter" id="vid-counter">— / —</span>
+        <span class="vid-title"   id="vid-title"></span>
+        <button class="btn-stop" onclick="stopSession()" title="Stop session">■</button>
+    </div>
+
+    <div class="vid-player">
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+        <video
+            id="video-player"
+            class="vid-video"
+            playsinline
+            autoplay
+            loop
+        ></video>
+        <div class="vid-tap-zone" id="vid-tap-zone"></div>
+    </div>
+
+    <div class="vid-progress" id="vid-progress" onclick="seekVideo(event)">
+        <div class="vid-progress-fill" id="vid-progress-fill"></div>
+    </div>
+
+    <div class="vid-controls">
+        <div class="main-btns">
+            <button class="btn-rate btn-like" onclick="rate('Approved')">
+                <span class="btn-rate-icon">✓</span> Approve
+            </button>
+            <button class="btn-rate btn-skip" onclick="skipVideo()">
+                <span class="btn-rate-icon">»</span> Skip
+            </button>
+            <button class="btn-rate btn-dislike" onclick="rate('Rejected')">
+                <span class="btn-rate-icon">✕</span> Reject
+            </button>
+        </div>
+    </div>
+
+    <!-- swipe hint (fades out after first swipe) -->
+    <div class="swipe-hint" id="swipe-hint">
+        <span>← skip</span><span>back →</span>
+    </div>
+
+</div>
+
+<!-- ══ EMPTY ══ -->
+<div id="screen-empty" class="screen">
+    <div class="empty-icon">✅</div>
+    <div class="empty-title">All caught up!</div>
+    <div class="empty-sub">No videos pending review.<br>Check back later.</div>
+    <button class="btn-reload" onclick="location.reload()">Reload</button>
+</div>
+
+<!-- ══ ERROR ══ -->
+<div id="screen-error" class="screen">
+    <div class="error-icon">⚠️</div>
+    <div class="error-title">Failed to load</div>
+    <div class="error-msg" id="error-msg">Could not connect to the server.</div>
+    <button class="btn-reload" onclick="location.reload()">Try again</button>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+    /* ─── CONFIG ─── */
+    const PASSWORD        = 'Daystar';
+    const WEBHOOK_VIDEOS  = 'https://n8n.tntnews.org/webhook/videos';
+    const WEBHOOK_LIKE    = 'https://n8n.tntnews.org/webhook/like';
+    const WEBHOOK_DISLIKE = 'https://n8n.tntnews.org/webhook/unlike';
+
+    /* ─── STATE ─── */
+    let videos       = [];        // [{recordId, title, googleId, link}]
+    let currentIndex = 0;
+    let visitedStack = [];        // ordered list of visited indexes
+    let ratedSet     = new Set(); // indexes that were rated
+    let isRating     = false;
+
+    /* ─── SCREEN MANAGER ─── */
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-' + id).classList.add('active');
+    }
+
+    /* ─── LOGIN ─── */
+    document.getElementById('password-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    function doLogin() {
+        const val = document.getElementById('password-input').value.trim();
+        if (val === PASSWORD) {
+            document.getElementById('login-error').textContent = '';
+            showScreen('countdown');
+            startCountdown();
+        } else {
+            const err = document.getElementById('login-error');
+            err.textContent = 'Incorrect password.';
+            document.getElementById('password-input').value = '';
+            document.getElementById('password-input').focus();
+        }
+    }
+
+    /* ─── COUNTDOWN + FETCH ─── */
+    let videosReady  = false;
+    let videosResult = null;
+
+    async function fetchVideos() {
+        try {
+            const res = await fetch(WEBHOOK_VIDEOS);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            videosResult = await res.json();
+        } catch (e) {
+            videosResult = { error: e.message };
+        }
+        videosReady = true;
+    }
+
+    function startCountdown() {
+        fetchVideos(); // start fetch immediately in background
+
+        let n = 5;
+        const el = document.getElementById('countdown-num');
+        el.textContent = n;
+
+        const timer = setInterval(() => {
+            n--;
+            if (n > 0) {
+                el.textContent = n;
+            } else {
+                clearInterval(timer);
+                waitThenBegin();
+            }
+        }, 1000);
+    }
+
+    function waitThenBegin() {
+        if (!videosReady) { setTimeout(waitThenBegin, 200); return; }
+
+        // handle fetch error
+        if (videosResult && videosResult.error) {
+            document.getElementById('error-msg').textContent =
+                'Could not connect to the video server.\n(' + videosResult.error + ')';
+            showScreen('error');
+            return;
+        }
+
+        videos = normalizeVideos(videosResult);
+
+        if (videos.length === 0) { showScreen('empty'); return; }
+
+        currentIndex = 0;
+        visitedStack = [];
+        ratedSet     = new Set();
+        showScreen('video');
+        loadVideo(0);
+    }
+
+    /* ─── NORMALIZE AIRTABLE / N8N RESPONSE ─── */
+    function normalizeVideos(data) {
+        if (!data) return [];
+
+        // wrap single object
+        if (!Array.isArray(data)) data = [data];
+        if (data.length === 0) return [];
+
+        const first = data[0];
+
+        // Helper: encontra o valor de um campo ignorando BOM (\uFEFF) e case
+        function getField(obj, ...names) {
+            // índice dos campos sem BOM e em lowercase
+            const clean = Object.fromEntries(
+                Object.entries(obj).map(([k, v]) => [k.replace(/^\uFEFF/, '').toLowerCase(), v])
+            );
+            for (const name of names) {
+                const val = clean[name.toLowerCase()];
+                if (val !== undefined && val !== null && val !== '') return val;
+            }
+            return '';
+        }
+
+        // Airtable native format: {id, fields: {Title, 'Google ID', Link, ...}}
+        if (first && first.fields !== undefined) {
+            return data.map(r => ({
+                recordId : r.id,
+                title    : getField(r.fields, 'Title', 'title', 'name') || 'Untitled',
+                googleId : getField(r.fields, 'Google ID', 'googleId', 'google_id'),
+                link     : getField(r.fields, 'Link', 'link', 'url'),
+            })).filter(v => (v.googleId || v.link) && v.recordId);
+        }
+
+        // Formato flat do n8n (campos no nível raiz) — ex: {id, "﻿Title", "Google ID", "Link", ...}
+        return data
+            .filter(r => !getField(r, 'Quality')) // ignora já avaliados
+            .map(r => ({
+                recordId : r.id || r.recordId,
+                title    : getField(r, 'Title', 'title', 'name') || 'Untitled',
+                googleId : getField(r, 'Google ID', 'googleId', 'google_id', 'googleID'),
+                link     : getField(r, 'Link', 'link', 'url'),
+            }))
+            .filter(v => (v.googleId || v.link) && v.recordId);
+    }
+
+    /* ─── LOAD VIDEO ─── */
+    function loadVideo(index) {
+        const item = videos[index];
+        if (!item) return;
+
+        isRating = false;
+
+        document.getElementById('vid-counter').textContent = `${index + 1} / ${videos.length}`;
+        document.getElementById('vid-title').textContent   = item.title;
+
+        // (back handled by swipe)
+
+        const player  = document.getElementById('video-player');
+        const loading = document.getElementById('loading-overlay');
+
+        loading.style.display = 'flex';
+
+        // Usa URL direta (campo Link) → <video> nativo; sem CSP, ended event funciona
+        const src = item.link || `https://drive.google.com/uc?export=download&id=${item.googleId}`;
+
+        player.src = '';
+        player.load();
+
+        requestAnimationFrame(() => {
+            player.src = src;
+            player.load();
+            player.play().catch(() => {}); // ignora política de autoplay do browser
+
+            player.oncanplay  = () => { loading.style.display = 'none'; };
+            player.onerror    = () => { loading.style.display = 'none'; }; // não bloqueia se der erro
+        });
+    }
+
+    /* ─── RATE ─── */
+    async function rate(quality) {
+        if (isRating) return;
+        isRating = true;
+
+        const video   = videos[currentIndex];
+        const webhook = quality === 'Approved' ? WEBHOOK_LIKE : WEBHOOK_DISLIKE;
+        const emoji   = quality === 'Approved' ? '👍' : '👎';
+
+        showToast(emoji);
+        ratedSet.add(currentIndex);
+
+        // fire-and-forget — don't block UX on network
+        fetch(webhook, {
+            method  : 'POST',
+            headers : { 'Content-Type': 'application/json' },
+            body    : JSON.stringify({ recordId: video.recordId, quality }),
+        }).catch(() => {});
+
+        advance();
+    }
+
+    /* ─── SKIP (sem avaliar) ─── */
+    function skipVideo() {
+        if (isRating) return;
+        advance();
+    }
+
+    /* ─── ADVANCE ─── */
+    function advance() {
+        visitedStack.push(currentIndex);
+
+        const next = currentIndex + 1;
+        if (next >= videos.length) {
+            showScreen('empty');
+            return;
+        }
+        currentIndex = next;
+        loadVideo(currentIndex);
+    }
+
+    /* ─── BACK (volta ao último assistido não avaliado) ─── */
+    function goBack() {
+        for (let i = visitedStack.length - 1; i >= 0; i--) {
+            if (!ratedSet.has(visitedStack[i])) {
+                const prev = visitedStack[i];
+                visitedStack = visitedStack.slice(0, i); // remove from stack
+                currentIndex = prev;
+                loadVideo(currentIndex);
+                return;
+            }
+        }
+    }
+
+    /* ─── TOAST ─── */
+    function stopSession() {
+        const player = document.getElementById('video-player');
+        player.pause();
+        player.src = '';
+        showScreen('login');
+        document.getElementById('password-input').value = '';
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 700);
+    }
+
+    /* ─── PROGRESS BAR ─── */
+    const _player = document.getElementById('video-player');
+    const _fill   = document.getElementById('vid-progress-fill');
+
+    _player.addEventListener('timeupdate', () => {
+        if (!_player.duration) return;
+        _fill.style.width = (_player.currentTime / _player.duration * 100) + '%';
+    });
+
+    function seekVideo(e) {
+        if (!_player.duration) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        _player.currentTime = ((e.clientX - rect.left) / rect.width) * _player.duration;
+    }
+
+    // video loops — advances only on like, dislike or swipe
+
+    /* ─── SWIPE (left = skip, right = back) + TAP to pause ─── */
+    (function () {
+        const THRESHOLD = 60;
+        let startX = 0, startY = 0, startT = 0, active = false;
+
+        const tapZone = document.getElementById('vid-tap-zone');
+        const player  = document.getElementById('video-player');
+
+        function onStart(x, y) {
+            startX = x; startY = y; startT = Date.now(); active = true;
+        }
+
+        function onEnd(x, y) {
+            if (!active) return;
+            active = false;
+
+            const dx = x - startX;
+            const dy = y - startY;
+            const dt = Date.now() - startT;
+
+            // tap → toggle pause
+            if (dt < 250 && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                player.paused ? player.play() : player.pause();
+                return;
+            }
+
+            if (Math.abs(dy) > Math.abs(dx)) return;
+            if (Math.abs(dx) < THRESHOLD) return;
+
+            if (dx < 0) skipVideo();  // swipe left  → skip
+            else        goBack();     // swipe right → back
+        }
+
+        // ── touch ──
+        tapZone.addEventListener('touchstart', e => {
+            onStart(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        tapZone.addEventListener('touchend', e => {
+            onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }, { passive: true });
+
+        // ── mouse (desktop) ──
+        tapZone.addEventListener('mousedown', e => { onStart(e.clientX, e.clientY); });
+        tapZone.addEventListener('mouseup',   e => { onEnd(e.clientX, e.clientY); });
+        tapZone.addEventListener('mouseleave', () => { active = false; });
+
+        // ── keyboard (desktop) ──
+        document.addEventListener('keydown', e => {
+            if (!document.getElementById('screen-video').classList.contains('active')) return;
+            if (e.key === 'ArrowLeft')  skipVideo();
+            if (e.key === 'ArrowRight') goBack();
+            if (e.key === ' ') { e.preventDefault(); player.paused ? player.play() : player.pause(); }
+        });
+    })();
+</script>
+</body>
+</html>
