@@ -751,52 +751,49 @@
 
     // video loops — advances only on like, dislike or swipe
 
-    /* ─── SWIPE (left = skip, right = back) + TAP to pause ─── */
+    /* ─── SWIPE + TAP ─── */
     (function () {
         const THRESHOLD = 60;
-        let startX = 0, startY = 0, startT = 0, active = false;
+        let startX = 0, startY = 0;
+        let swipeFired = false;
 
         const tapZone = document.getElementById('vid-tap-zone');
         const player  = document.getElementById('video-player');
 
-        function onStart(x, y) {
-            startX = x; startY = y; startT = Date.now(); active = true;
-        }
+        // ── tap / click → pause (mobile + desktop) ──
+        tapZone.addEventListener('click', () => {
+            if (swipeFired) { swipeFired = false; return; }
+            player.paused ? player.play() : player.pause();
+        });
 
-        function onEnd(x, y) {
-            if (!active) return;
-            active = false;
-
-            const dx = x - startX;
-            const dy = y - startY;
-            const dt = Date.now() - startT;
-
-            // tap → toggle pause
-            if (dt < 250 && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-                player.paused ? player.play() : player.pause();
-                return;
-            }
-
-            if (Math.abs(dy) > Math.abs(dx)) return;
-            if (Math.abs(dx) < THRESHOLD) return;
-
-            if (dx < 0) skipVideo();  // swipe left  → skip
-            else        goBack();     // swipe right → back
-        }
-
-        // ── touch ──
+        // ── swipe → touch ──
         tapZone.addEventListener('touchstart', e => {
-            onStart(e.touches[0].clientX, e.touches[0].clientY);
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
         }, { passive: true });
 
         tapZone.addEventListener('touchend', e => {
-            onEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+            const dx = e.changedTouches[0].clientX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
+            if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > Math.abs(dx)) return;
+            swipeFired = true;
+            if (dx < 0) skipVideo();
+            else        goBack();
         }, { passive: true });
 
-        // ── mouse (desktop) ──
-        tapZone.addEventListener('mousedown', e => { onStart(e.clientX, e.clientY); });
-        tapZone.addEventListener('mouseup',   e => { onEnd(e.clientX, e.clientY); });
-        tapZone.addEventListener('mouseleave', () => { active = false; });
+        // ── swipe → mouse (desktop) ──
+        let mouseStartX = 0, mouseDown = false;
+        tapZone.addEventListener('mousedown', e => { mouseStartX = e.clientX; mouseDown = true; });
+        tapZone.addEventListener('mouseup', e => {
+            if (!mouseDown) return;
+            mouseDown = false;
+            const dx = e.clientX - mouseStartX;
+            if (Math.abs(dx) < THRESHOLD) return;
+            swipeFired = true;
+            if (dx < 0) skipVideo();
+            else        goBack();
+        });
+        tapZone.addEventListener('mouseleave', () => { mouseDown = false; });
 
         // ── keyboard (desktop) ──
         document.addEventListener('keydown', e => {
