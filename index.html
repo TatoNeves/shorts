@@ -531,9 +531,11 @@
         try {
             const res = await fetch(WEBHOOK_VIDEOS);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            videosResult = await res.json();
+            const text = await res.text();
+            videosResult = text.trim() ? JSON.parse(text) : [];
         } catch (e) {
-            videosResult = { error: e.message };
+            // empty or invalid JSON → treat as no videos pending
+            videosResult = [];
         }
         videosReady = true;
     }
@@ -558,14 +560,6 @@
 
     function waitThenBegin() {
         if (!videosReady) { setTimeout(waitThenBegin, 200); return; }
-
-        // handle fetch error
-        if (videosResult && videosResult.error) {
-            document.getElementById('error-msg').textContent =
-                'Could not connect to the video server.\n(' + videosResult.error + ')';
-            showScreen('error');
-            return;
-        }
 
         videos = normalizeVideos(videosResult);
 
