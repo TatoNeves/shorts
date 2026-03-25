@@ -315,6 +315,7 @@
 
         .btn-dislike { background: #ff1744; color: #fff; }
         .btn-like    { background: #00c853; color: #fff; }
+        .btn-review  { background: #2979ff; color: #fff; }
         .btn-skip    { background: #ffc107; color: #000; display: none; }
 
         @media (hover: hover) and (pointer: fine) {
@@ -437,6 +438,9 @@
             <button class="btn-rate btn-like" onclick="rate('Approved')">
                 <span class="btn-rate-icon">✓</span> Approve
             </button>
+            <button class="btn-rate btn-review" onclick="rate('Review')">
+                <span class="btn-rate-icon">⟳</span> Review
+            </button>
             <button class="btn-rate btn-skip" onclick="skipVideo()">
                 <span class="btn-rate-icon">»</span> Skip
             </button>
@@ -478,6 +482,7 @@
     const WEBHOOK_VIDEOS  = 'https://n8n.tntnews.org/webhook/videos';
     const WEBHOOK_LIKE    = 'https://n8n.tntnews.org/webhook/like';
     const WEBHOOK_DISLIKE = 'https://n8n.tntnews.org/webhook/unlike';
+    const WEBHOOK_REVIEW  = 'https://n8n.tntnews.org/webhook/review';
 
     /* ─── STATE ─── */
     let videos       = [];        // [{recordId, title, googleId, link}]
@@ -661,8 +666,12 @@
         isRating = true;
 
         const video   = videos[currentIndex];
-        const webhook = quality === 'Approved' ? WEBHOOK_LIKE : WEBHOOK_DISLIKE;
-        const emoji   = quality === 'Approved' ? '👍' : '👎';
+        const webhook = quality === 'Approved' ? WEBHOOK_LIKE
+                      : quality === 'Review'   ? WEBHOOK_REVIEW
+                      :                          WEBHOOK_DISLIKE;
+        const emoji   = quality === 'Approved' ? '👍'
+                      : quality === 'Review'   ? '🔵'
+                      :                          '👎';
 
         showToast(emoji);
         ratedSet.add(currentIndex);
