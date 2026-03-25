@@ -148,6 +148,21 @@
             letter-spacing: 1px;
             white-space: nowrap;
         }
+        .btn-mute {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 50%;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: background .15s;
+        }
         .btn-stop {
             background: rgba(255,255,255,.12);
             border: 1px solid rgba(255,255,255,.2);
@@ -395,6 +410,7 @@
     <div class="vid-header">
         <span class="vid-counter" id="vid-counter">— / —</span>
         <span class="vid-title"   id="vid-title"></span>
+        <button class="btn-mute" id="btn-mute" onclick="toggleMute()" title="Mute / Unmute">🔇</button>
         <button class="btn-stop" onclick="stopSession()" title="Stop session">■</button>
     </div>
 
@@ -481,9 +497,16 @@
         if (e.key === 'Enter') doLogin();
     });
 
+    // auto-login se já autenticou antes
+    if (localStorage.getItem('qc_auth') === '1') {
+        showScreen('countdown');
+        startCountdown();
+    }
+
     function doLogin() {
         const val = document.getElementById('password-input').value.trim();
         if (val === PASSWORD) {
+            localStorage.setItem('qc_auth', '1');
             document.getElementById('login-error').textContent = '';
             showScreen('countdown');
             startCountdown();
@@ -620,8 +643,12 @@
 
         requestAnimationFrame(() => {
             player.src = src;
+            player.muted = true;          // muted garante autoplay em qualquer browser
             player.load();
-            player.play().catch(() => {}); // ignora política de autoplay do browser
+            player.play().then(() => {
+                // desmutar só se o usuário já interagiu (unmutedByUser)
+                if (window._unmutedByUser) player.muted = false;
+            }).catch(() => {});
 
             player.oncanplay  = () => { loading.style.display = 'none'; };
             player.onerror    = () => { loading.style.display = 'none'; }; // não bloqueia se der erro
@@ -683,10 +710,19 @@
     }
 
     /* ─── TOAST ─── */
+    function toggleMute() {
+        const player = document.getElementById('video-player');
+        const btn    = document.getElementById('btn-mute');
+        player.muted = !player.muted;
+        window._unmutedByUser = !player.muted;
+        btn.textContent = player.muted ? '🔇' : '🔊';
+    }
+
     function stopSession() {
         const player = document.getElementById('video-player');
         player.pause();
         player.src = '';
+        localStorage.removeItem('qc_auth');
         showScreen('login');
         document.getElementById('password-input').value = '';
     }
