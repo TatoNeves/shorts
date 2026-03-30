@@ -1,0 +1,7 @@
+services:
+  quality-check:
+    build: .
+    container_name: quality-check
+    restart: always
+    ports:
+      - "3010:80"   # altere a porta 3010 se necessário

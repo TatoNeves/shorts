@@ -41,7 +41,7 @@
           "mode": "id"
         },
         "returnAll": true,
-        "filterByFormula": "OR({Quality} = \"\", {Quality} = BLANK())",
+        "filterByFormula": "={{ (() => { const q = String($json.query?.quality || $json.query?.queue || 'pending').trim().toLowerCase(); return q === 'maybe' ? '{Quality} = \"Maybe\"' : 'OR({Quality} = \"Pending\", {Quality} = \"\", {Quality} = BLANK())'; })() }}",
         "options": {}
       }
     },
@@ -52,7 +52,7 @@
       "typeVersion": 2,
       "position": [680, 300],
       "parameters": {
-        "jsCode": "// Normaliza campos ignorando BOM (\\uFEFF) no nome das chaves\nfunction getField(obj, ...names) {\n  const clean = Object.fromEntries(\n    Object.entries(obj).map(([k, v]) => [k.replace(/^\\uFEFF/, '').toLowerCase(), v])\n  );\n  for (const name of names) {\n    const val = clean[name.toLowerCase()];\n    if (val !== undefined && val !== null && val !== '') return val;\n  }\n  return '';\n}\n\nreturn $input.all()\n  .map(item => {\n    const r = item.json;\n    // suporte a formato flat (campos no raiz) e formato nativo Airtable ({fields:{...}})\n    const src = r.fields || r;\n    return {\n      json: {\n        recordId: r.id || r.recordId,\n        title:    getField(src, 'Title', 'title', 'name') || 'Sem título',\n        googleId: getField(src, 'Google ID', 'googleId', 'google_id', 'googleID'),\n        link:     getField(src, 'Link', 'link', 'url')\n      }\n    };\n  })\n  .filter(item => item.json.recordId && (item.json.googleId || item.json.link));\n"
+        "jsCode": "// Normaliza campos ignorando BOM (\\uFEFF) no nome das chaves\nfunction getField(obj, ...names) {\n  const clean = Object.fromEntries(\n    Object.entries(obj).map(([k, v]) => [k.replace(/^\\uFEFF/, '').toLowerCase(), v])\n  );\n  for (const name of names) {\n    const val = clean[name.toLowerCase()];\n    if (val !== undefined && val !== null && val !== '') return val;\n  }\n  return '';\n}\n\nreturn $input.all()\n  .map(item => {\n    const r = item.json;\n    // suporte a formato flat (campos no raiz) e formato nativo Airtable ({fields:{...}})\n    const src = r.fields || r;\n    return {\n      json: {\n        recordId: r.id || r.recordId,\n        title:    getField(src, 'Title', 'title', 'name') || 'Sem título',\n        googleId: getField(src, 'Google ID', 'googleId', 'google_id', 'googleID'),\n        link:     getField(src, 'Link', 'link', 'url'),\n        quality:  getField(src, 'Quality', 'quality') || 'Pending'\n      }\n    };\n  })\n  .filter(item => item.json.recordId && (item.json.googleId || item.json.link));\n"
       }
     },
     {

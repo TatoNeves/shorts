@@ -140,13 +140,56 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+        }
+        .vid-header-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+        .vid-header-actions {
+            display: flex;
+            align-items: center;
             gap: 8px;
+            flex-shrink: 0;
         }
         .vid-counter {
             font-size: 12px;
             color: rgba(255,255,255,.6);
             letter-spacing: 1px;
             white-space: nowrap;
+        }
+        .queue-filter {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 999px;
+            background: rgba(0,0,0,.35);
+            flex-shrink: 0;
+        }
+        .queue-filter-btn {
+            border: none;
+            border-radius: 999px;
+            background: transparent;
+            color: rgba(255,255,255,.72);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 9px 12px;
+            transition: background .15s ease, color .15s ease, opacity .15s ease;
+        }
+        .queue-filter-btn.active {
+            background: #fff;
+            color: #000;
+        }
+        .queue-filter-btn:disabled {
+            opacity: .45;
+            cursor: default;
         }
         .btn-mute {
             background: rgba(255,255,255,.12);
@@ -183,8 +226,9 @@
             font-size: 13px;
             font-weight: 600;
             color: rgba(255,255,255,.9);
-            text-align: right;
+            text-align: left;
             flex: 1;
+            min-width: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -247,22 +291,103 @@
             pointer-events: none;
         }
 
-        .vid-controls {
+        .action-rail {
             position: absolute;
-            bottom: 3px; left: 0; right: 0;
-            z-index: 20;
-            padding: 32px 12px max(env(safe-area-inset-bottom, 0px), 24px);
-            background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 100%);
+            left: 50%;
+            bottom: max(env(safe-area-inset-bottom, 0px), 18px);
+            transform: translateX(-50%);
+            z-index: 22;
             display: flex;
-            align-items: center;
+            flex-direction: row;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 14px;
+            width: min(100%, 360px);
+            padding: 0 12px;
         }
 
-        .main-btns {
+        .action-item {
             display: flex;
-            gap: 8px;
-            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .action-btn {
+            width: 56px;
+            height: 56px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(44,44,44,.9);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            width: 100%;
+            box-shadow: 0 14px 34px rgba(0,0,0,.3);
+            transition: transform .12s ease, background .15s ease, filter .15s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .action-btn:active {
+            transform: scale(.94);
+            filter: brightness(.9);
+        }
+        .action-btn:hover {
+            background: rgba(60,60,60,.94);
+        }
+        .action-btn svg {
+            width: 22px;
+            height: 22px;
+            display: block;
+        }
+
+        .action-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            text-shadow: 0 2px 10px rgba(0,0,0,.35);
+        }
+        .action-item.hidden {
+            display: none;
+        }
+
+        .video-empty {
+            position: absolute;
+            inset: 0;
+            z-index: 12;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 32px;
+        }
+        .video-empty-card {
+            max-width: 320px;
+        }
+        .video-empty-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .video-empty-sub {
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #7d7d7d;
+        }
+
+        #screen-video.queue-empty .vid-player,
+        #screen-video.queue-empty .vid-progress,
+        #screen-video.queue-empty .action-rail,
+        #screen-video.queue-empty .swipe-hint {
+            display: none;
+        }
+        #screen-video.queue-empty .video-empty {
+            display: flex;
         }
 
         /* swipe hint */
@@ -293,36 +418,6 @@
             80%  { opacity: 1; }
             100% { opacity: 0; }
         }
-
-        .btn-rate {
-            border: none;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 700;
-            padding: 0 14px;
-            height: 52px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex: 1;
-            justify-content: center;
-            min-width: 0;
-            transition: transform 0.1s, filter 0.15s;
-            letter-spacing: .5px;
-        }
-        .btn-rate:active { transform: scale(.93); filter: brightness(.85); }
-
-        .btn-dislike { background: #ff1744; color: #fff; }
-        .btn-like    { background: #00c853; color: #fff; }
-        .btn-review  { background: #2979ff; color: #fff; }
-        .btn-skip    { background: #ffc107; color: #000; display: none; }
-
-        @media (hover: hover) and (pointer: fine) {
-            .btn-skip { display: flex; }
-        }
-
-        .btn-rate-icon { font-size: 18px; }
 
         /* ── EMPTY ── */
         #screen-empty {
@@ -409,10 +504,28 @@
 <div id="screen-video" class="screen">
 
     <div class="vid-header">
-        <span class="vid-counter" id="vid-counter">— / —</span>
-        <span class="vid-title"   id="vid-title"></span>
-        <button class="btn-mute" id="btn-mute" onclick="toggleMute()" title="Mute / Unmute">🔇</button>
-        <button class="btn-stop" onclick="stopSession()" title="Stop session">■</button>
+        <div class="vid-header-main">
+            <span class="vid-counter" id="vid-counter">— / —</span>
+            <div class="queue-filter" aria-label="Queue filter">
+                <button
+                    id="queue-pending-btn"
+                    class="queue-filter-btn active"
+                    onclick="setQueue('pending')"
+                    type="button"
+                >Pending</button>
+                <button
+                    id="queue-maybe-btn"
+                    class="queue-filter-btn"
+                    onclick="setQueue('maybe')"
+                    type="button"
+                >Maybe</button>
+            </div>
+            <span class="vid-title" id="vid-title"></span>
+        </div>
+        <div class="vid-header-actions">
+            <button class="btn-mute" id="btn-mute" onclick="toggleMute()" title="Mute / Unmute">🔇</button>
+            <button class="btn-stop" onclick="stopSession()" title="Stop session">■</button>
+        </div>
     </div>
 
     <div class="vid-player">
@@ -433,26 +546,54 @@
         <div class="vid-progress-fill" id="vid-progress-fill"></div>
     </div>
 
-    <div class="vid-controls">
-        <div class="main-btns">
-            <button class="btn-rate btn-like" onclick="rate('Approved')">
-                <span class="btn-rate-icon">✓</span> Approve
+    <div class="action-rail" id="action-rail">
+        <div class="action-item">
+            <button class="action-btn" onclick="rate('Approved')" title="Approve" aria-label="Approve">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
             </button>
-            <button class="btn-rate btn-review" onclick="rate('Review')">
-                <span class="btn-rate-icon">⟳</span> Review
+            <span class="action-label">Approve</span>
+        </div>
+
+        <div class="action-item" id="action-maybe">
+            <button class="action-btn" onclick="rate('Maybe')" title="Maybe" aria-label="Maybe">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.496 6.033h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286a.237.237 0 0 0 .241.247m2.325 6.443c.61 0 1.029-.394 1.029-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94 0 .533.425.927 1.01.927z"/>
+                </svg>
             </button>
-            <button class="btn-rate btn-skip" onclick="skipVideo()">
-                <span class="btn-rate-icon">»</span> Skip
+            <span class="action-label">Maybe</span>
+        </div>
+
+        <div class="action-item">
+            <button class="action-btn" onclick="rate('Review')" title="Review" aria-label="Review">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.5 7.5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z"/>
+                </svg>
             </button>
-            <button class="btn-rate btn-dislike" onclick="rate('Rejected')">
-                <span class="btn-rate-icon">✕</span> Reject
+            <span class="action-label">Review</span>
+        </div>
+
+        <div class="action-item">
+            <button class="action-btn" onclick="rate('Rejected')" title="Reject" aria-label="Reject">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                </svg>
             </button>
+            <span class="action-label">Reject</span>
         </div>
     </div>
 
     <!-- swipe hint (fades out after first swipe) -->
     <div class="swipe-hint" id="swipe-hint">
         <span>← skip</span><span>back →</span>
+    </div>
+
+    <div class="video-empty" id="video-empty">
+        <div class="video-empty-card">
+            <div class="video-empty-title" id="video-empty-title">No videos found</div>
+            <div class="video-empty-sub" id="video-empty-sub">Try switching the filter or check back later.</div>
+        </div>
     </div>
 
 </div>
@@ -481,6 +622,7 @@
     const PASSWORD        = 'Daystar';
     const WEBHOOK_VIDEOS  = 'https://n8n.tntnews.org/webhook/videos';
     const WEBHOOK_LIKE    = 'https://n8n.tntnews.org/webhook/like';
+    const WEBHOOK_MAYBE   = 'https://n8n.tntnews.org/webhook/maybe';
     const WEBHOOK_DISLIKE = 'https://n8n.tntnews.org/webhook/unlike';
     const WEBHOOK_REVIEW  = 'https://n8n.tntnews.org/webhook/review';
 
@@ -490,6 +632,10 @@
     let visitedStack = [];        // ordered list of visited indexes
     let ratedSet     = new Set(); // indexes that were rated
     let isRating     = false;
+    let currentQueue = 'pending';
+    let isQueueLoading = false;
+    let videosReady  = false;
+    let videosResult = null;
 
     /* ─── SCREEN MANAGER ─── */
     function showScreen(id) {
@@ -523,25 +669,38 @@
         }
     }
 
-    /* ─── COUNTDOWN + FETCH ─── */
-    let videosReady  = false;
-    let videosResult = null;
+    function buildVideosUrl(queue = currentQueue) {
+        const url = new URL(WEBHOOK_VIDEOS);
 
-    async function fetchVideos() {
+        if (queue === 'maybe') {
+            url.searchParams.set('queue', 'maybe');
+            url.searchParams.set('quality', 'Maybe');
+        } else {
+            url.searchParams.set('queue', 'pending');
+            url.searchParams.set('quality', 'Pending');
+        }
+
+        return url.toString();
+    }
+
+    async function fetchVideos(queue = currentQueue) {
         try {
-            const res = await fetch(WEBHOOK_VIDEOS);
+            const res = await fetch(buildVideosUrl(queue), { cache: 'no-store' });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const text = await res.text();
-            videosResult = text.trim() ? JSON.parse(text) : [];
+            return text.trim() ? JSON.parse(text) : [];
         } catch (e) {
             // empty or invalid JSON → treat as no videos pending
-            videosResult = [];
+            return [];
         }
-        videosReady = true;
     }
 
     function startCountdown() {
-        fetchVideos(); // start fetch immediately in background
+        videosReady = false;
+        fetchVideos(currentQueue).then(data => {
+            videosResult = data;
+            videosReady = true;
+        });
 
         let n = 5;
         const el = document.getElementById('countdown-num');
@@ -561,15 +720,7 @@
     function waitThenBegin() {
         if (!videosReady) { setTimeout(waitThenBegin, 200); return; }
 
-        videos = normalizeVideos(videosResult);
-
-        if (videos.length === 0) { showScreen('empty'); return; }
-
-        currentIndex = 0;
-        visitedStack = [];
-        ratedSet     = new Set();
-        showScreen('video');
-        loadVideo(0);
+        applyVideos(videosResult);
     }
 
     /* ─── NORMALIZE AIRTABLE / N8N RESPONSE ─── */
@@ -595,19 +746,35 @@
             return '';
         }
 
+        function hasField(obj, name) {
+            return Object.keys(obj).some(key => key.replace(/^\uFEFF/, '').toLowerCase() === name.toLowerCase());
+        }
+
+        function matchesCurrentQueue(obj) {
+            if (!hasField(obj, 'Quality')) return true;
+
+            const quality = String(getField(obj, 'Quality')).trim().toLowerCase();
+            return currentQueue === 'maybe'
+                ? quality === 'maybe'
+                : !quality || quality === 'pending';
+        }
+
         // Airtable native format: {id, fields: {Title, 'Google ID', Link, ...}}
         if (first && first.fields !== undefined) {
-            return data.map(r => ({
-                recordId : r.id,
-                title    : getField(r.fields, 'Title', 'title', 'name') || 'Untitled',
-                googleId : getField(r.fields, 'Google ID', 'googleId', 'google_id'),
-                link     : getField(r.fields, 'Link', 'link', 'url'),
-            })).filter(v => (v.googleId || v.link) && v.recordId);
+            return data
+                .filter(r => matchesCurrentQueue(r.fields))
+                .map(r => ({
+                    recordId : r.id,
+                    title    : getField(r.fields, 'Title', 'title', 'name') || 'Untitled',
+                    googleId : getField(r.fields, 'Google ID', 'googleId', 'google_id'),
+                    link     : getField(r.fields, 'Link', 'link', 'url'),
+                }))
+                .filter(v => (v.googleId || v.link) && v.recordId);
         }
 
         // Formato flat do n8n (campos no nível raiz) — ex: {id, "﻿Title", "Google ID", "Link", ...}
         return data
-            .filter(r => !getField(r, 'Quality')) // ignora já avaliados
+            .filter(matchesCurrentQueue)
             .map(r => ({
                 recordId : r.id || r.recordId,
                 title    : getField(r, 'Title', 'title', 'name') || 'Untitled',
@@ -615,6 +782,114 @@
                 link     : getField(r, 'Link', 'link', 'url'),
             }))
             .filter(v => (v.googleId || v.link) && v.recordId);
+    }
+
+    function updateQueueFilterUI() {
+        const pendingBtn  = document.getElementById('queue-pending-btn');
+        const maybeBtn    = document.getElementById('queue-maybe-btn');
+        const maybeAction = document.getElementById('action-maybe');
+
+        pendingBtn.classList.toggle('active', currentQueue === 'pending');
+        maybeBtn.classList.toggle('active', currentQueue === 'maybe');
+        pendingBtn.disabled = isQueueLoading;
+        maybeBtn.disabled = isQueueLoading;
+        maybeAction.classList.toggle('hidden', currentQueue === 'maybe');
+    }
+
+    function getQueueCopy() {
+        if (currentQueue === 'maybe') {
+            return {
+                header: 'Maybe Queue',
+                emptyTitle: 'No Maybe items',
+                emptySub: 'Switch to Pending or check back later.'
+            };
+        }
+
+        return {
+            header: 'Pending Queue',
+            emptyTitle: 'No pending items',
+            emptySub: 'Switch to Maybe or check back later.'
+        };
+    }
+
+    function showQueueEmptyState() {
+        const copy    = getQueueCopy();
+        const player  = document.getElementById('video-player');
+        const loading = document.getElementById('loading-overlay');
+        const screen  = document.getElementById('screen-video');
+
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+
+        document.getElementById('vid-counter').textContent = '— / —';
+        document.getElementById('vid-title').textContent = copy.header;
+        document.getElementById('video-empty-title').textContent = copy.emptyTitle;
+        document.getElementById('video-empty-sub').textContent = copy.emptySub;
+
+        loading.style.display = 'none';
+        screen.classList.add('queue-empty');
+        showScreen('video');
+    }
+
+    function showQueueVideoState() {
+        document.getElementById('screen-video').classList.remove('queue-empty');
+    }
+
+    function showQueueLoadingState(queue) {
+        const player  = document.getElementById('video-player');
+        const loading = document.getElementById('loading-overlay');
+        const title   = queue === 'maybe' ? 'Maybe Queue' : 'Pending Queue';
+
+        videos = [];
+        currentIndex = 0;
+        visitedStack = [];
+        ratedSet = new Set();
+
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+
+        document.getElementById('vid-counter').textContent = '— / —';
+        document.getElementById('vid-title').textContent = title;
+
+        showQueueVideoState();
+        loading.style.display = 'flex';
+        showScreen('video');
+    }
+
+    function applyVideos(data) {
+        videos = normalizeVideos(data);
+        currentIndex = 0;
+        visitedStack = [];
+        ratedSet     = new Set();
+        isQueueLoading = false;
+
+        updateQueueFilterUI();
+
+        if (videos.length === 0) {
+            showQueueEmptyState();
+            return;
+        }
+
+        showQueueVideoState();
+        showScreen('video');
+        loadVideo(0);
+    }
+
+    async function setQueue(queue) {
+        if (queue === currentQueue || isQueueLoading) return;
+
+        currentQueue = queue;
+        isQueueLoading = true;
+        updateQueueFilterUI();
+        showQueueLoadingState(queue);
+
+        const data = await fetchVideos(queue);
+
+        if (queue !== currentQueue) return;
+
+        applyVideos(data);
     }
 
     /* ─── LOAD VIDEO ─── */
@@ -637,7 +912,7 @@
         // Usa URL direta (campo Link) → <video> nativo; sem CSP, ended event funciona
         const src = item.link || `https://drive.google.com/uc?export=download&id=${item.googleId}`;
 
-        player.src = '';
+        player.removeAttribute('src');
         player.load();
 
         requestAnimationFrame(() => {
@@ -661,9 +936,11 @@
 
         const video   = videos[currentIndex];
         const webhook = quality === 'Approved' ? WEBHOOK_LIKE
+                      : quality === 'Maybe'    ? WEBHOOK_MAYBE
                       : quality === 'Review'   ? WEBHOOK_REVIEW
                       :                          WEBHOOK_DISLIKE;
         const emoji   = quality === 'Approved' ? '👍'
+                      : quality === 'Maybe'    ? '❔'
                       : quality === 'Review'   ? '🔵'
                       :                          '👎';
 
@@ -675,6 +952,7 @@
             method  : 'POST',
             headers : { 'Content-Type': 'application/json' },
             body    : JSON.stringify({ recordId: video.recordId, quality }),
+            cache   : 'no-store',
         }).catch(() => {});
 
         advance();
@@ -692,7 +970,8 @@
 
         const next = currentIndex + 1;
         if (next >= videos.length) {
-            showScreen('empty');
+            videos = [];
+            showQueueEmptyState();
             return;
         }
         currentIndex = next;
@@ -724,8 +1003,14 @@
     function stopSession() {
         const player = document.getElementById('video-player');
         player.pause();
-        player.src = '';
+        player.removeAttribute('src');
+        player.load();
         localStorage.removeItem('qc_auth');
+        videos = [];
+        currentQueue = 'pending';
+        isQueueLoading = false;
+        showQueueVideoState();
+        updateQueueFilterUI();
         showScreen('login');
         document.getElementById('password-input').value = '';
     }
