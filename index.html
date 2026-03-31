@@ -354,6 +354,11 @@
         .action-item.hidden {
             display: none;
         }
+        .speed-btn {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
 
         .video-empty {
             position: absolute;
@@ -581,6 +586,13 @@
                 </svg>
             </button>
             <span class="action-label">Reject</span>
+        </div>
+
+        <div class="action-item">
+            <button class="action-btn speed-btn" id="speed-btn" onclick="cycleSpeed()" title="Speed" aria-label="Speed">
+                <span id="speed-label">1×</span>
+            </button>
+            <span class="action-label">Speed</span>
         </div>
     </div>
 
@@ -966,6 +978,7 @@
 
                 player.oncanplay = () => {
                     loading.style.display = 'none';
+                    player.playbackRate = SPEEDS[speedIndex];
                 };
 
                 player.onerror = () => {
@@ -992,6 +1005,17 @@
 
             trySource();
         });
+    }
+
+    /* ─── SPEED ─── */
+    const SPEEDS = [1, 1.5, 2];
+    let speedIndex = 0;
+    function cycleSpeed() {
+        speedIndex = (speedIndex + 1) % SPEEDS.length;
+        const speed = SPEEDS[speedIndex];
+        const player = document.getElementById('video-player');
+        if (player) player.playbackRate = speed;
+        document.getElementById('speed-label').textContent = speed + '×';
     }
 
     /* ─── RATE ─── */
