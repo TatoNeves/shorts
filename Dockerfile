@@ -5,7 +5,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 # Copia app e config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY index.html /usr/share/nginx/html/index.html
+COPY index.html bbt.html /usr/share/nginx/html/
 
 EXPOSE 80
 
