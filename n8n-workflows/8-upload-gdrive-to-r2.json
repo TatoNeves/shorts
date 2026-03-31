@@ -1,0 +1,351 @@
+{
+  "nodes": [
+    {
+      "id": "n1-webhook",
+      "name": "Webhook POST /upload-to-r2",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-to-r2",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "webhookId": "af713c0b-9627-48be-92b4-5e88eb8cb73c"
+    },
+    {
+      "id": "n2-airtable",
+      "name": "Airtable - Buscar Registros",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "h7x6vcNDkwxXD0KV",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appMo6aMGKBXLR75J",
+          "mode": "list",
+          "cachedResultName": "BBT",
+          "cachedResultUrl": "https://airtable.com/appMo6aMGKBXLR75J"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblkG0oOnC4S1BUpD",
+          "mode": "list",
+          "cachedResultName": "Vizard",
+          "cachedResultUrl": "https://airtable.com/appMo6aMGKBXLR75J/tblkG0oOnC4S1BUpD"
+        },
+        "returnAll": false,
+        "limit": 5,
+        "options": {
+          "view": {
+            "__rl": true,
+            "value": "viwm36CvHIkS73caZ",
+            "mode": "list",
+            "cachedResultName": "Publishing",
+            "cachedResultUrl": "https://airtable.com/appMo6aMGKBXLR75J/tblkG0oOnC4S1BUpD/viwm36CvHIkS73caZ"
+          }
+        }
+      }
+    },
+    {
+      "id": "n3-preparar",
+      "name": "Preparar e Assinar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Configuracoes do Cloudflare R2\nconst R2_ACCOUNT_ID        = 'SEU_ACCOUNT_ID';\nconst R2_ACCESS_KEY_ID     = 'SEU_ACCESS_KEY_ID';\nconst R2_SECRET_ACCESS_KEY = 'SEU_SECRET_ACCESS_KEY';\nconst R2_BUCKET            = 'SEU_BUCKET';\nconst R2_PUBLIC_BASE       = 'https://pub-43cb29e383504085b15144dc2b4ec45b.r2.dev';\n\nfunction sha256(data){const bytes=typeof data==='string'?(new TextEncoder()).encode(data):(data instanceof Uint8Array?data:new Uint8Array(data));const K=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);const H=new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);const msgLen=bytes.length,bitLen=msgLen*8,padLen=msgLen%64<56?56-(msgLen%64):120-(msgLen%64);const padded=new Uint8Array(msgLen+padLen+8);padded.set(bytes);padded[msgLen]=0x80;const dv=new DataView(padded.buffer);dv.setUint32(padded.length-4,bitLen>>>0,false);dv.setUint32(padded.length-8,Math.floor(bitLen/4294967296),false);const W=new Uint32Array(64),rotr=(x,n)=>(x>>>n)|(x<<(32-n));for(let i=0;i<padded.length;i+=64){const cv=new DataView(padded.buffer,i,64);for(let j=0;j<16;j++)W[j]=cv.getUint32(j*4,false);for(let j=16;j<64;j++){const s0=rotr(W[j-15],7)^rotr(W[j-15],18)^(W[j-15]>>>3),s1=rotr(W[j-2],17)^rotr(W[j-2],19)^(W[j-2]>>>10);W[j]=(W[j-16]+s0+W[j-7]+s1)>>>0;}let[a,b,c,d,e,f,g,h]=H;for(let j=0;j<64;j++){const S1=rotr(e,6)^rotr(e,11)^rotr(e,25),ch=(e&f)^(~e&g),t1=(h+S1+ch+K[j]+W[j])>>>0,S0=rotr(a,2)^rotr(a,13)^rotr(a,22),maj=(a&b)^(a&c)^(b&c),t2=(S0+maj)>>>0;h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;}H[0]=(H[0]+a)>>>0;H[1]=(H[1]+b)>>>0;H[2]=(H[2]+c)>>>0;H[3]=(H[3]+d)>>>0;H[4]=(H[4]+e)>>>0;H[5]=(H[5]+f)>>>0;H[6]=(H[6]+g)>>>0;H[7]=(H[7]+h)>>>0;}const out=new Uint8Array(32),odv=new DataView(out.buffer);for(let i=0;i<8;i++)odv.setUint32(i*4,H[i],false);return out;}\nfunction sha256Hex(d){return Array.from(sha256(d)).map(b=>b.toString(16).padStart(2,'0')).join('');}\nfunction hmacSha256(k,m){const block=64;let key=k.length>block?sha256(k):k;const kk=new Uint8Array(block);kk.set(key);const ip=kk.map(b=>b^0x36),op=kk.map(b=>b^0x5c),mb=typeof m==='string'?(new TextEncoder()).encode(m):m,inner=new Uint8Array(block+mb.length),outer=new Uint8Array(block+32);inner.set(ip);inner.set(mb,block);outer.set(op);outer.set(sha256(inner),block);return sha256(outer);}\nfunction hmacHex(k,m){return Array.from(hmacSha256(k,m)).map(b=>b.toString(16).padStart(2,'0')).join('');}\n\nfunction getSigningKey(secret,date,region,service){const enc=s=>(new TextEncoder()).encode(s);const kDate=hmacSha256(enc('AWS4'+secret),date),kRegion=hmacSha256(kDate,region),kService=hmacSha256(kRegion,service);return hmacSha256(kService,'aws4_request');}\n\nfunction cleanText(v){return typeof v==='string'?v.trim():String(v||'').trim();}\nfunction getField(obj,...names){const clean=Object.fromEntries(Object.entries(obj||{}).map(([k,v])=>[k.replace(/^\\uFEFF/,'').toLowerCase(),v]));for(const name of names){const val=clean[name.toLowerCase()];if(val!==undefined&&val!==null&&val!=='')return val;}return '';}\nfunction extractDriveId(value){const raw=cleanText(value);if(!raw)return '';if(!/^https?:\\/\\//i.test(raw))return raw;try{const url=new URL(raw);const p=cleanText(url.searchParams.get('id'));if(p)return p;const m=url.pathname.match(/\\/file\\/d\\/([^/]+)/i)||url.pathname.match(/\\/d\\/([^/]+)/i);return m?cleanText(m[1]):'';}catch{return '';}}\n\n// ── Dados do Airtable ──\nconst src      = $json.fields || $json;\nconst recordId = cleanText($json.id || $json.recordId);\nconst title    = cleanText(getField(src,'Title','title','name')) || 'Untitled';\nconst googleId = cleanText(getField(src,'Google ID','googleId','google_id','googleID'));\nconst link     = cleanText(getField(src,'Link','link','url'));\n\nif (!recordId) throw new Error('recordId ausente no registro Airtable');\n\nlet downloadUrl = '';\nif (/^https?:\\/\\//i.test(link)) {\n  downloadUrl = link;\n} else {\n  const driveId = extractDriveId(googleId) || extractDriveId(link);\n  if (driveId) downloadUrl = `https://drive.usercontent.google.com/download?id=${encodeURIComponent(driveId)}&export=download&confirm=t`;\n}\nif (!downloadUrl) throw new Error(`Nenhuma URL de download para record ${recordId}`);\n\nconst objectKey   = `bbt/${recordId}.mp4`;\nconst contentType = 'video/mp4';\n\n// ── AWS Sig V4 com UNSIGNED-PAYLOAD ──\nconst region = 'auto', service = 's3';\nconst host   = `${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;\nconst now    = new Date();\nconst amzDate   = now.toISOString().replace(/[-:]/g,'').replace(/\\.\\d{3}/,'');\nconst dateStamp = amzDate.slice(0,8);\nconst payloadHash = 'UNSIGNED-PAYLOAD';\n\nconst canonicalHeaders =\n  `content-type:${contentType}\\n` +\n  `host:${host}\\n` +\n  `x-amz-content-sha256:${payloadHash}\\n` +\n  `x-amz-date:${amzDate}\\n`;\nconst signedHeaders    = 'content-type;host;x-amz-content-sha256;x-amz-date';\nconst canonicalRequest = ['PUT',`/${R2_BUCKET}/${objectKey}`,'',canonicalHeaders,signedHeaders,payloadHash].join('\\n');\nconst credentialScope  = `${dateStamp}/${region}/${service}/aws4_request`;\nconst stringToSign     = ['AWS4-HMAC-SHA256',amzDate,credentialScope,sha256Hex(canonicalRequest)].join('\\n');\nconst sigKey           = getSigningKey(R2_SECRET_ACCESS_KEY,dateStamp,region,service);\nconst signature        = hmacHex(sigKey,stringToSign);\n\nconst authorization = `AWS4-HMAC-SHA256 Credential=${R2_ACCESS_KEY_ID}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;\nconst uploadUrl     = `https://${host}/${R2_BUCKET}/${objectKey}`;\nconst r2Url         = `${R2_PUBLIC_BASE.replace(/\\/$/,'')}/${objectKey}`;\n\nreturn { json: { recordId, title, googleId, downloadUrl, objectKey, contentType, authorization, payloadHash, amzDate, uploadUrl, r2Url } };"
+      }
+    },
+    {
+      "id": "n4-download",
+      "name": "HTTP - Baixar Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.downloadUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          },
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 10
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "n5-upload",
+      "name": "HTTP - Upload R2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ],
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('Preparar e Assinar').item.json.uploadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Preparar e Assinar').item.json.authorization }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $('Preparar e Assinar').item.json.contentType }}"
+            },
+            {
+              "name": "x-amz-content-sha256",
+              "value": "={{ $('Preparar e Assinar').item.json.payloadHash }}"
+            },
+            {
+              "name": "x-amz-date",
+              "value": "={{ $('Preparar e Assinar').item.json.amzDate }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      }
+    },
+    {
+      "id": "n6-update",
+      "name": "Airtable - Atualizar R2 URL",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "h7x6vcNDkwxXD0KV",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appMo6aMGKBXLR75J",
+          "mode": "list",
+          "cachedResultName": "BBT",
+          "cachedResultUrl": "https://airtable.com/appMo6aMGKBXLR75J"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblkG0oOnC4S1BUpD",
+          "mode": "list",
+          "cachedResultName": "Vizard",
+          "cachedResultUrl": "https://airtable.com/appMo6aMGKBXLR75J/tblkG0oOnC4S1BUpD"
+        },
+        "id": "={{ $('Preparar e Assinar').item.json.recordId }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "R2 URL": "={{ $('Preparar e Assinar').item.json.r2Url }}"
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "n7-responder",
+      "name": "Responder OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "n8-montar",
+      "name": "Montar Resposta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "fields": {
+          "values": [
+            {
+              "name": "ok",
+              "type": "booleanValue",
+              "booleanValue": true
+            },
+            {
+              "name": "recordId",
+              "type": "stringValue",
+              "stringValue": "={{ $('Preparar e Assinar').item.json.recordId }}"
+            },
+            {
+              "name": "title",
+              "type": "stringValue",
+              "stringValue": "={{ $('Preparar e Assinar').item.json.title }}"
+            },
+            {
+              "name": "r2Url",
+              "type": "stringValue",
+              "stringValue": "={{ $('Preparar e Assinar').item.json.r2Url }}"
+            }
+          ]
+        },
+        "include": "none"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook POST /upload-to-r2": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Buscar Registros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Buscar Registros": {
+      "main": [
+        [
+          {
+            "node": "Preparar e Assinar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar e Assinar": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Baixar Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Baixar Video": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Upload R2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Upload R2": {
+      "main": [
+        [
+          {
+            "node": "Airtable - Atualizar R2 URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable - Atualizar R2 URL": {
+      "main": [
+        [
+          {
+            "node": "Montar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "quality-check"
+    },
+    {
+      "name": "bbt"
+    },
+    {
+      "name": "cloudflare-r2"
+    }
+  ],
+  "meta": {
+    "instanceId": "6785be78c89e18858b35ab60e7b5716d5d941523162b64131fb6108f3bc6b6aa"
+  }
+}
