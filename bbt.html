@@ -983,6 +983,7 @@
 
                 player.oncanplay = () => {
                     loading.style.display = 'none';
+                    player.playbackRate = SPEEDS[speedIndex];
                 };
 
                 player.onerror = () => {
