@@ -775,31 +775,63 @@
                 : !quality || quality === 'pending';
         }
 
+        // Intercala os vídeos para que nunca dois consecutivos sejam do mesmo projectId.
+        // Greedy: sempre escolhe o vídeo de maior nota cujo projectId ≠ ao do último inserido.
+        function spreadByProject(list) {
+            const remaining = [...list]; // já ordenado por nota desc
+            const result = [];
+
+            while (remaining.length > 0) {
+                const lastId = result.length > 0 ? result[result.length - 1].projectId : null;
+
+                // índice do primeiro vídeo com projectId diferente do último
+                let idx = remaining.findIndex(v => v.projectId == null || v.projectId !== lastId);
+
+                // se todos têm o mesmo projectId, adiciona o de maior nota mesmo assim
+                if (idx === -1) idx = 0;
+
+                result.push(remaining.splice(idx, 1)[0]);
+            }
+
+            return result;
+        }
+
+        function sortAndSpread(list) {
+            list.sort((a, b) => (b.note ?? -Infinity) - (a.note ?? -Infinity));
+            return spreadByProject(list);
+        }
+
         // Airtable native format: {id, fields: {Title, 'Google ID', Link, ...}}
         if (first && first.fields !== undefined) {
-            return data
+            const mapped = data
                 .filter(r => matchesCurrentQueue(r.fields))
                 .map(r => ({
-                    recordId : r.id,
-                    title    : cleanText(getField(r.fields, 'Title', 'title', 'name')) || 'Untitled',
-                    googleId : cleanText(getField(r.fields, 'Google ID', 'googleId', 'google_id')),
-                    link     : cleanText(getField(r.fields, 'Link', 'link', 'url')),
-                    r2Url    : cleanText(getField(r.fields, 'R2 URL', 'r2Url', 'r2url')),
+                    recordId  : r.id,
+                    title     : cleanText(getField(r.fields, 'Title', 'title', 'name')) || 'Untitled',
+                    googleId  : cleanText(getField(r.fields, 'Google ID', 'googleId', 'google_id')),
+                    link      : cleanText(getField(r.fields, 'Link', 'link', 'url')),
+                    r2Url     : cleanText(getField(r.fields, 'R2 URL', 'r2Url', 'r2url')),
+                    note      : parseFloat(getField(r.fields, 'Note', 'Nota', 'Score')) || null,
+                    projectId : getField(r.fields, 'ProjectId', 'Project ID', 'projectId') || null,
                 }))
                 .filter(v => getPlayableSources(v).length && v.recordId);
+            return sortAndSpread(mapped);
         }
 
         // Formato flat do n8n (campos no nível raiz) — ex: {id, "﻿Title", "Google ID", "Link", ...}
-        return data
+        const mapped = data
             .filter(matchesCurrentQueue)
             .map(r => ({
-                recordId : r.id || r.recordId,
-                title    : cleanText(getField(r, 'Title', 'title', 'name')) || 'Untitled',
-                googleId : cleanText(getField(r, 'Google ID', 'googleId', 'google_id', 'googleID')),
-                link     : cleanText(getField(r, 'Link', 'link', 'url')),
-                r2Url    : cleanText(getField(r, 'R2 URL', 'r2Url', 'r2url')),
+                recordId  : r.id || r.recordId,
+                title     : cleanText(getField(r, 'Title', 'title', 'name')) || 'Untitled',
+                googleId  : cleanText(getField(r, 'Google ID', 'googleId', 'google_id', 'googleID')),
+                link      : cleanText(getField(r, 'Link', 'link', 'url')),
+                r2Url     : cleanText(getField(r, 'R2 URL', 'r2Url', 'r2url')),
+                note      : parseFloat(getField(r, 'Note', 'Nota', 'Score')) || null,
+                projectId : getField(r, 'ProjectId', 'Project ID', 'projectId') || null,
             }))
             .filter(v => getPlayableSources(v).length && v.recordId);
+        return sortAndSpread(mapped);
     }
 
     function extractGoogleDriveId(value) {
