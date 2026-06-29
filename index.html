@@ -784,6 +784,7 @@
                     title    : cleanText(getField(r.fields, 'Title', 'title', 'name')) || 'Untitled',
                     googleId : cleanText(getField(r.fields, 'Google ID', 'googleId', 'google_id')),
                     link     : cleanText(getField(r.fields, 'Link', 'link', 'url')),
+                    r2Url    : cleanText(getField(r.fields, 'R2 URL', 'r2Url', 'r2url')),
                 }))
                 .filter(v => getPlayableSources(v).length && v.recordId);
         }
@@ -796,6 +797,7 @@
                 title    : cleanText(getField(r, 'Title', 'title', 'name')) || 'Untitled',
                 googleId : cleanText(getField(r, 'Google ID', 'googleId', 'google_id', 'googleID')),
                 link     : cleanText(getField(r, 'Link', 'link', 'url')),
+                r2Url    : cleanText(getField(r, 'R2 URL', 'r2Url', 'r2url')),
             }))
             .filter(v => getPlayableSources(v).length && v.recordId);
     }
@@ -821,6 +823,9 @@
 
     function getPlayableSources(item) {
         const sources = [];
+        const r2Url = typeof item?.r2Url === 'string' ? item.r2Url.trim() : '';
+        if (/^https?:\/\//i.test(r2Url)) sources.push(r2Url);
+
         const link = typeof item?.link === 'string' ? item.link.trim() : '';
         if (/^https?:\/\//i.test(link)) sources.push(link);
 
